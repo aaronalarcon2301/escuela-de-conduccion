@@ -1,8 +1,8 @@
 const { EntitySchema } = require('typeorm');
 
 module.exports = new EntitySchema({
-  name: 'Alumno', // Nombre entidad
-  tableName: 'alumnos', // Nombre de la tabla
+  name: 'Alumno', 
+  tableName: 'alumnos', 
   columns: {
     id: {
       primary: true,
@@ -16,5 +16,9 @@ module.exports = new EntitySchema({
       type: 'varchar',
       unique: true, // No pueden haber dos alumnos con el mismo correo
     },
+    pagos_al_dia: {
+      type: 'boolean',
+      default: true, 
+    }
   },
 });
