@@ -1,0 +1,103 @@
+{
+  "info": {
+    "_postman_id": "f7bb1d9a-6b89-4a6d-b11d-7cdff2f9a6d1",
+    "name": "Escuela de Conducción API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Alumnos",
+      "item": [
+        {
+          "name": "Listar alumnos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/alumnos"
+          },
+          "response": []
+        },
+        {
+          "name": "Crear alumno",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Ana\",\n  \"email\": \"ana@example.com\"\n}"
+            },
+            "url": "{{baseUrl}}/alumnos"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Instructores",
+      "item": [
+        {
+          "name": "Crear instructor",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Daniel\",\n  \"rut\": \"11111111-1\",\n  \"email\": \"daniel@example.com\",\n  \"tipoLicencia\": \"Clase B\"\n}"
+            },
+            "url": "{{baseUrl}}/instructores"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Evaluaciones",
+      "item": [
+        {
+          "name": "Registrar evaluación",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"alumnoId\": 1,\n  \"instructorId\": 1,\n  \"estacionamiento\": \"Aprobado\",\n  \"controlVehiculo\": \"Aprobado\",\n  \"respetoSenales\": \"Aprobado\",\n  \"observaciones\": \"Buen desempeño\"\n}"
+            },
+            "url": "{{baseUrl}}/evaluaciones-practicas"
+          },
+          "response": []
+        },
+        {
+          "name": "Historial de evaluaciones",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/alumnos/1/evaluaciones"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    }
+  ]
+}
