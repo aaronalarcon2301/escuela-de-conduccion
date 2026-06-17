@@ -1,0 +1,38 @@
+### 1) Listar alumnos
+GET http://localhost:3000/alumnos
+
+### 2) Crear alumno
+POST http://localhost:3000/alumnos
+Content-Type: application/json
+
+{
+  "nombre": "Ana",
+  "email": "ana@example.com"
+}
+
+### 3) Crear instructor
+POST http://localhost:3000/instructores
+Content-Type: application/json
+
+{
+  "nombre": "Daniel",
+  "rut": "11111111-1",
+  "email": "daniel@example.com",
+  "tipoLicencia": "Clase B"
+}
+
+### 4) Crear evaluación práctica
+POST http://localhost:3000/evaluaciones-practicas
+Content-Type: application/json
+
+{
+  "alumnoId": 1,
+  "instructorId": 1,
+  "estacionamiento": "Aprobado",
+  "controlVehiculo": "Aprobado",
+  "respetoSenales": "Aprobado",
+  "observaciones": "Buen desempeño"
+}
+
+### 5) Historial de evaluaciones del alumno
+GET http://localhost:3000/alumnos/1/evaluaciones
