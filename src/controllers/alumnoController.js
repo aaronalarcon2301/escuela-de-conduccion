@@ -1,49 +1,43 @@
-const { AppDataSource } = require('../config/db');
+const alumnoService = require('../services/alumnoService');
 
-const alumnoRepository = AppDataSource.getRepository('Alumno');
-
-// Crear un nuevo alumno
 const crearAlumno = async (req, res) => {
   try {
-    const nuevoAlumno = alumnoRepository.create(req.body);
-    const resultado = await alumnoRepository.save(nuevoAlumno);
+    const resultado = await alumnoService.crearAlumno(req.body);
     res.status(201).json(resultado); 
   } catch (error) {
     res.status(400).json({ error: 'Error al crear el alumno, revisa los datos' });
   }
 };
 
-// lista todos los alumnos
 const obtenerAlumnos = async (req, res) => {
-  const alumnos = await alumnoRepository.find();
-  res.json(alumnos);
+  try {
+    const alumnos = await alumnoService.obtenerAlumnos();
+    res.json(alumnos);
+  } catch (error) {
+    res.status(500).json({ error: 'Error interno al obtener alumnos' });
+  }
 };
 
-// actualiza datos parciales
 const actualizarAlumno = async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    const alumno = await alumnoRepository.findOneBy({ id: id });
+    const resultado = await alumnoService.actualizarAlumno(id, req.body);
     
-    if (!alumno) {
+    if (!resultado) {
       return res.status(404).json({ error: 'Alumno no encontrado' });
     }
-
-    alumnoRepository.merge(alumno, req.body);
-    const resultado = await alumnoRepository.save(alumno);
     res.json(resultado);
   } catch (error) {
     res.status(500).json({ error: 'Error interno al actualizar el alumno' });
   }
 };
 
-// Elimina un alumno por su ID
 const eliminarAlumno = async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    const resultado = await alumnoRepository.delete(id);
+    const eliminado = await alumnoService.eliminarAlumno(id);
     
-    if (resultado.affected === 0) {
+    if (!eliminado) {
       return res.status(404).json({ error: 'Alumno no encontrado' });
     }
     res.json({ mensaje: 'Alumno eliminado correctamente de la base de datos' });
