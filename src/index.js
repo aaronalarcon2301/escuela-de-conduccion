@@ -4,6 +4,8 @@ const { AppDataSource } = require('./config/db');
 
 const alumnoRoutes = require('./routes/alumnoRoutes');
 const reservaRoutes = require('./routes/reservaRoutes');
+const instructorRoutes = require('./routes/instructores'); 
+const evaluacionRoutes = require('./routes/evaluaciones');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -12,6 +14,8 @@ app.use(express.json());
 
 app.use('/alumnos', alumnoRoutes);
 app.use('/reservas', reservaRoutes);
+app.use('/instructores', instructorRoutes); 
+app.use('/evaluaciones-practicas', evaluacionRoutes);
 
 async function startServer() {
   try {
@@ -23,11 +27,10 @@ async function startServer() {
     });
   } catch (error) {
     console.error('Error al conectar con la base de datos:', error);
-    process.exit(1); // Detiene el servidor si no hay base de datos
+    process.exit(1); 
   }
 }
 
-// Ejecutar la función de inicio
 if (require.main === module) {
   startServer();
 }
