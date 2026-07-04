@@ -6,7 +6,10 @@ module.exports = new EntitySchema({
   columns: {
     id: { primary: true, type: 'int', generated: true },
     nombre: { type: 'varchar' },
+    apellido: { type: 'varchar', nullable: true },          
+    rut: { type: 'varchar', unique: true, nullable: true }, 
     email: { type: 'varchar', unique: true },
+    telefono: { type: 'varchar', nullable: true },
     pagos_al_dia: { type: 'boolean', default: true }  
   }
 });

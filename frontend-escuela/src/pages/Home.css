@@ -1,0 +1,49 @@
+/* src/pages/Home.css */
+
+/* Animación de entrada fluida (de abajo hacia arriba) */
+.fade-in-up {
+  animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+.delay-1 { animation-delay: 0.15s; }
+.delay-2 { animation-delay: 0.3s; }
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Acento vibrante para tipografía grande */
+.text-gradient {
+  background: linear-gradient(135deg, #0052D4, #4364F7, #6FB1FC);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Efecto hover interactivo para las tarjetas */
+.home-card {
+  transition: all 0.3s ease;
+  border-radius: 1rem;
+}
+
+.home-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 15px 30px rgba(0,0,0,0.1) !important;
+  border-color: #4364F7 !important;
+}
+
+.icon-box {
+  width: 65px;
+  height: 65px;
+  font-size: 1.8rem;
+  transition: transform 0.3s ease;
+}
+
+.home-card:hover .icon-box {
+  transform: scale(1.1) rotate(5deg);
+}
