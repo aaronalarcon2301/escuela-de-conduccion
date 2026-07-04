@@ -5,7 +5,11 @@ module.exports = new EntitySchema({
   tableName: 'instructores',
   columns: {
     id: { primary: true, type: 'int', generated: true },
-    nombre: { type: 'varchar', length: 100 },
-    rut: { type: 'varchar', length: 12, unique: true }
+    nombre: { type: 'varchar' },
+    apellido: { type: 'varchar' },
+    rut: { type: 'varchar', unique: true },
+    email: { type: 'varchar', unique: true },
+    telefono: { type: 'varchar', nullable: true },
+    licencia: { type: 'varchar', default: 'Clase B' } 
   }
 });

@@ -17,7 +17,6 @@ const evaluacionRoutes = require('./routes/evaluaciones');
 
 const port = process.env.PORT || 3000;
 
-// Uso de rutas
 app.use('/alumnos', alumnoRoutes);
 app.use('/reservas', reservaRoutes);
 app.use('/instructores', instructorRoutes); 

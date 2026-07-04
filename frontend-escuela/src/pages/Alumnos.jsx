@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 
 function Alumnos() {
   const [alumnos, setAlumnos] = useState([]);
+  
   const [nuevoAlumno, setNuevoAlumno] = useState({
     nombre: '',
     apellido: '',
@@ -9,6 +10,8 @@ function Alumnos() {
     email: '',
     telefono: ''
   });
+  const [modoEdicion, setModoEdicion] = useState(false);
+  const [idEdicion, setIdEdicion] = useState(null);
 
   useEffect(() => {
     fetch('http://localhost:3000/alumnos')
@@ -26,15 +29,11 @@ function Alumnos() {
 
   const formatearRUT = (rut) => {
     const valorLimpio = rut.replace(/[^0-9kK]/g, '');
-    
     if (valorLimpio.length === 0) return '';
     if (valorLimpio.length <= 1) return valorLimpio.toUpperCase();
-
     const cuerpo = valorLimpio.slice(0, -1);
     const dv = valorLimpio.slice(-1).toUpperCase();
-
     const cuerpoFormateado = cuerpo.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-
     return `${cuerpoFormateado}-${dv}`;
   };
 
@@ -45,20 +44,69 @@ function Alumnos() {
     });
   };
 
+  const manejarEditar = (alumno) => {
+    setNuevoAlumno({
+      nombre: alumno.nombre,
+      apellido: alumno.apellido,
+      rut: alumno.rut,
+      email: alumno.email,
+      telefono: alumno.telefono || ''
+    });
+    setModoEdicion(true);
+    setIdEdicion(alumno.id);
+  };
+
+  const cancelarEdicion = () => {
+    setNuevoAlumno({ nombre: '', apellido: '', rut: '', email: '', telefono: '' });
+    setModoEdicion(false);
+    setIdEdicion(null);
+  };
+
   const manejarEnvio = (e) => {
     e.preventDefault(); 
     
-    fetch('http://localhost:3000/alumnos', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(nuevoAlumno)
-    })
-    .then(res => res.json())
-    .then(data => {
-      setAlumnos([...alumnos, data]);
-      setNuevoAlumno({ nombre: '', apellido: '', rut: '', email: '', telefono: '' });
-    })
-    .catch(err => console.error('Error al guardar:', err));
+    if (modoEdicion) {
+      fetch(`http://localhost:3000/alumnos/${idEdicion}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(nuevoAlumno)
+      })
+      .then(res => res.json())
+      .then(data => {
+        const listaActualizada = alumnos.map(al => al.id === idEdicion ? data : al);
+        setAlumnos(listaActualizada);
+        cancelarEdicion(); 
+      })
+      .catch(err => console.error('Error al actualizar:', err));
+
+    } else {
+      fetch('http://localhost:3000/alumnos', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(nuevoAlumno)
+      })
+      .then(res => res.json())
+      .then(data => {
+        setAlumnos([...alumnos, data]);
+        setNuevoAlumno({ nombre: '', apellido: '', rut: '', email: '', telefono: '' });
+      })
+      .catch(err => console.error('Error al guardar:', err));
+    }
+  };
+
+  const manejarEliminar = (id) => {
+    const confirmar = window.confirm('¿Estás seguro de que deseas eliminar a este alumno? Esta acción no se puede deshacer.');
+    
+    if (confirmar) {
+      fetch(`http://localhost:3000/alumnos/${id}`, {
+        method: 'DELETE',
+      })
+      .then(() => {
+        const nuevaLista = alumnos.filter(alumno => alumno.id !== id);
+        setAlumnos(nuevaLista);
+      })
+      .catch(err => console.error('Error al eliminar:', err));
+    }
   };
 
   return (
@@ -71,8 +119,8 @@ function Alumnos() {
         {/* Formulario */}
         <div className="col-md-4 mb-4">
           <div className="card shadow-sm border-0">
-            <div className="card-header bg-primary text-white">
-              <h5 className="mb-0">Registrar Nuevo Alumno</h5>
+            <div className={`card-header text-white ${modoEdicion ? 'bg-success' : 'bg-primary'}`}>
+              <h5 className="mb-0">{modoEdicion ? '✏️ Editar Alumno' : 'Registrar Nuevo Alumno'}</h5>
             </div>
             <div className="card-body">
               <form onSubmit={manejarEnvio}>
@@ -90,7 +138,7 @@ function Alumnos() {
                     type="text" 
                     className="form-control" 
                     name="rut" 
-                    placeholder="Ej: 123456789 (presiona Tab)" 
+                    placeholder="Ej: 12.345.678-9" 
                     value={nuevoAlumno.rut} 
                     onChange={manejarCambio} 
                     onBlur={manejarBlurRut} 
@@ -103,15 +151,24 @@ function Alumnos() {
                 </div>
                 <div className="mb-4">
                   <label className="form-label text-muted small fw-bold">Teléfono</label>
-                  <input type="text" className="form-control" name="telefono" placeholder="+569..." value={nuevoAlumno.telefono} onChange={manejarCambio} />
+                  <input type="text" className="form-control" name="telefono" placeholder="Ej: 987654321" value={nuevoAlumno.telefono} onChange={manejarCambio} />
                 </div>
-                <button type="submit" className="btn btn-primary w-100">Guardar Alumno</button>
+                
+                <div className="d-grid gap-2">
+                  <button type="submit" className={`btn ${modoEdicion ? 'btn-success' : 'btn-primary'}`}>
+                    {modoEdicion ? 'Actualizar Alumno' : 'Guardar Alumno'}
+                  </button>
+                  {modoEdicion && (
+                    <button type="button" className="btn btn-light border" onClick={cancelarEdicion}>
+                      Cancelar
+                    </button>
+                  )}
+                </div>
               </form>
             </div>
           </div>
         </div>
 
-        {/* Tabla */}
         <div className="col-md-8">
           <div className="card shadow-sm border-0">
             <div className="card-body p-0">
@@ -124,12 +181,13 @@ function Alumnos() {
                       <th>RUT</th>
                       <th>Email</th>
                       <th>Teléfono</th>
+                      <th className="text-center pe-4">Acciones</th>
                     </tr>
                   </thead>
                   <tbody>
                     {alumnos.length === 0 ? (
                       <tr>
-                        <td colSpan="5" className="text-center py-5 text-muted">
+                        <td colSpan="6" className="text-center py-5 text-muted">
                           No hay alumnos registrados en el sistema.
                         </td>
                       </tr>
@@ -141,6 +199,27 @@ function Alumnos() {
                           <td>{alumno.rut}</td>
                           <td>{alumno.email}</td>
                           <td>{alumno.telefono || 'N/A'}</td>
+                          <td className="text-center pe-4">
+                            <div className="d-flex justify-content-center gap-2">
+                              <button 
+                                onClick={() => manejarEditar(alumno)} 
+                                className="btn btn-sm btn-outline-primary transition-all px-3"
+                                style={{ borderRadius: '20px' }}
+                                title="Editar registro"
+                              >
+                                ✏️
+                              </button>
+                              
+                              <button 
+                                onClick={() => manejarEliminar(alumno.id)} 
+                                className="btn btn-sm btn-outline-danger transition-all px-3"
+                                style={{ borderRadius: '20px' }}
+                                title="Eliminar registro"
+                              >
+                                🗑️
+                              </button>
+                            </div>
+                          </td>
                         </tr>
                       ))
                     )}

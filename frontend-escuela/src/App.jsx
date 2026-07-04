@@ -2,6 +2,8 @@ import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import './App.css'; 
 import Home from './pages/Home';
 import Alumnos from './pages/Alumnos';
+import Instructores from './pages/Instructores';
+import Reservas from './pages/Reservas';
 
 function App() {
   return (
@@ -26,8 +28,8 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/alumnos" element={<Alumnos />} />
-            <Route path="/instructores" element={<h2 className="mt-5 text-center text-muted">Módulo de Instructores (En construcción)</h2>} />
-            <Route path="/reservas" element={<h2 className="mt-5 text-center text-muted">Módulo de Reservas (En construcción)</h2>} />
+            <Route path="/instructores" element={<Instructores />} />
+            <Route path="/reservas" element={<Reservas />} />
             <Route path="/evaluaciones" element={<h2 className="mt-5 text-center text-muted">Módulo de Evaluaciones (En construcción)</h2>} />
           </Routes>
         </div>
