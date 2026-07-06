@@ -4,6 +4,7 @@ import Home from './pages/Home';
 import Alumnos from './pages/Alumnos';
 import Instructores from './pages/Instructores';
 import Reservas from './pages/Reservas';
+import Evaluaciones from './pages/Evaluaciones';
 
 function App() {
   return (
@@ -30,7 +31,7 @@ function App() {
             <Route path="/alumnos" element={<Alumnos />} />
             <Route path="/instructores" element={<Instructores />} />
             <Route path="/reservas" element={<Reservas />} />
-            <Route path="/evaluaciones" element={<h2 className="mt-5 text-center text-muted">Módulo de Evaluaciones (En construcción)</h2>} />
+            <Route path="/evaluaciones" element={<Evaluaciones />} />
           </Routes>
         </div>
       </div>

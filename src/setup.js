@@ -20,8 +20,8 @@ async function seedDataWithPostgres() {
   const instructoresExistentes = await instructorRepository.count();
   if (instructoresExistentes === 0) {
     await instructorRepository.save([
-      { nombre: 'Daniel', rut: '11111111-1', email: 'daniel@example.com', tipoLicencia: 'Clase B' },
-      { nombre: 'Sofía', rut: '22222222-2', email: 'sofia@example.com', tipoLicencia: 'Clase A' },
+      { nombre: 'Daniel', apellido: 'Pérez', rut: '11111111-1', email: 'daniel@example.com', tipoLicencia: 'Clase B' },
+      { nombre: 'Sofía', apellido: 'González', rut: '22222222-2', email: 'sofia@example.com', tipoLicencia: 'Clase A' },
     ]);
   }
 

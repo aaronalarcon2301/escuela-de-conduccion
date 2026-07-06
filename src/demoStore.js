@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { calcularResultadoEvaluacion } = require('./utils/evaluacion');
+const { calcularResultadoEvaluacion } = require('./validations/evaluacion');
 
 const dataFilePath = path.join(__dirname, '..', 'data', 'demo-data.json');
 

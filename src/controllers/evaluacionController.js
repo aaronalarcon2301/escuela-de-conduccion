@@ -2,10 +2,10 @@ const evaluacionService = require('../services/evaluacionService');
 
 const crearEvaluacion = async (req, res) => {
   try {
-    const resultado = await evaluacionService.crearEvaluacion(req.body);
-    res.status(201).json(resultado);
+    const { evaluacion, mensaje } = await evaluacionService.crearEvaluacion(req.body);
+    res.status(201).json({ evaluacion, mensaje });
   } catch (error) {
-    res.status(400).json({ error: 'Error al registrar la evaluación práctica, revisa los datos' });
+    res.status(400).json({ error: error.message || 'Error al registrar la evaluación práctica, revisa los datos' });
   }
 };
 
@@ -32,7 +32,7 @@ const actualizarEvaluacion = async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     const resultado = await evaluacionService.actualizarEvaluacion(id, req.body);
-    
+
     if (!resultado) return res.status(404).json({ error: 'Evaluación no encontrada' });
     res.json(resultado);
   } catch (error) {
@@ -44,7 +44,7 @@ const eliminarEvaluacion = async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     const eliminado = await evaluacionService.eliminarEvaluacion(id);
-    
+
     if (!eliminado) return res.status(404).json({ error: 'Evaluación no encontrada' });
     res.json({ mensaje: 'Evaluación eliminada correctamente de la base de datos' });
   } catch (error) {
