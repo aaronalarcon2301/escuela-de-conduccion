@@ -1,11 +1,10 @@
 const express = require('express');
-const evaluacionController = require('../controllers/evaluacionController');
 const router = express.Router();
+const evaluacionController = require('../controllers/evaluacionController');
 
 router.post('/', evaluacionController.crearEvaluacion);
 router.get('/', evaluacionController.obtenerEvaluaciones);
-router.get('/alumnos/:id', evaluacionController.obtenerEvaluacionesPorAlumno);
-router.patch('/:id', evaluacionController.actualizarEvaluacion);
+router.put('/:id', evaluacionController.actualizarEvaluacion);
 router.delete('/:id', evaluacionController.eliminarEvaluacion);
 
 module.exports = router;
