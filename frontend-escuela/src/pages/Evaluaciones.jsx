@@ -196,18 +196,19 @@ function Evaluaciones() {
                       <th>Control vehículo</th>
                       <th>Señales</th>
                       <th>Resultado</th>
+                      <th>Observaciones</th>
                     </tr>
                   </thead>
                   <tbody>
                     {!form.alumnoId ? (
                       <tr>
-                        <td colSpan="5" className="text-center py-5 text-muted">
+                        <td colSpan="6" className="text-center py-5 text-muted">
                           Selecciona un alumno para ver su historial.
                         </td>
                       </tr>
                     ) : historial.length === 0 ? (
                       <tr>
-                        <td colSpan="5" className="text-center py-5 text-muted">
+                        <td colSpan="6" className="text-center py-5 text-muted">
                           Este alumno aún no tiene evaluaciones registradas.
                         </td>
                       </tr>
@@ -223,6 +224,7 @@ function Evaluaciones() {
                               {ev.resultado}
                             </span>
                           </td>
+                          <td className="text-muted small">{ev.observaciones || '—'}</td>
                         </tr>
                       ))
                     )}
