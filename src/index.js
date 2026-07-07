@@ -5,21 +5,20 @@ const { AppDataSource } = require('./config/db');
 
 const app = express();
 
-// Middlewares clave
 app.use(cors());
 app.use(express.json());
 
 // Importación de rutas
 const alumnoRoutes = require('./routes/alumnoRoutes');
+const instructorRoutes = require('./routes/instructorRoutes');
 const reservaRoutes = require('./routes/reservaRoutes');
-const instructorRoutes = require('./routes/instructores'); 
-const evaluacionRoutes = require('./routes/evaluaciones');
+const evaluacionRoutes = require('./routes/evaluacionRoutes');
 
 const port = process.env.PORT || 3000;
 
 app.use('/alumnos', alumnoRoutes);
 app.use('/reservas', reservaRoutes);
-app.use('/instructores', instructorRoutes); 
+app.use('/instructores', instructorRoutes);
 app.use('/evaluaciones-practicas', evaluacionRoutes);
 
 // Inicialización del servidor y BD

@@ -1,6 +1,5 @@
 require('dotenv').config();
 const { AppDataSource } = require('./config/db');
-const { createDemoStore } = require('./demoStore');
 
 async function seedDataWithPostgres() {
   await AppDataSource.initialize();
@@ -20,8 +19,8 @@ async function seedDataWithPostgres() {
   const instructoresExistentes = await instructorRepository.count();
   if (instructoresExistentes === 0) {
     await instructorRepository.save([
-      { nombre: 'Daniel', apellido: 'Pérez', rut: '11111111-1', email: 'daniel@example.com', tipoLicencia: 'Clase B' },
-      { nombre: 'Sofía', apellido: 'González', rut: '22222222-2', email: 'sofia@example.com', tipoLicencia: 'Clase A' },
+      { nombre: 'Daniel', apellido: 'Pérez', rut: '11111111-1', email: 'daniel@example.com', licencia: 'Clase B' },
+      { nombre: 'Sofía', apellido: 'González', rut: '22222222-2', email: 'sofia@example.com', licencia: 'Clase A' },
     ]);
   }
 
@@ -33,9 +32,7 @@ async function main() {
   try {
     await seedDataWithPostgres();
   } catch (error) {
-    createDemoStore();
-    console.log('⚠️ No se pudo conectar a PostgreSQL. Se activó el modo demo para probar la API.');
-    console.log('✅ Configuración completada (modo demo)');
+    console.error('❌ Error al configurar la base de datos:', error.message);
   }
 }
 

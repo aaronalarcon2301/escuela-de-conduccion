@@ -64,10 +64,17 @@ function Evaluaciones() {
       }),
     })
       .then(async (res) => {
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Error al registrar la evaluación');
-        return data;
-      })
+        console.log("Status:", res.status);
+
+       const texto = await res.text();
+       console.log(texto);
+
+       try {
+         return JSON.parse(texto);
+       } catch {
+         throw new Error("El servidor respondió HTML en vez de JSON");
+       }
+     })
       .then(({ evaluacion, mensaje }) => {
         const aprobado = evaluacion.resultado === 'Aprobado';
         setNotificacion({ tipo: aprobado ? 'success' : 'warning', texto: mensaje });
