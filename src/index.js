@@ -13,9 +13,11 @@ const alumnoRoutes = require('./routes/alumnoRoutes');
 const instructorRoutes = require('./routes/instructorRoutes');
 const reservaRoutes = require('./routes/reservaRoutes');
 const evaluacionRoutes = require('./routes/evaluacionRoutes');
+const authRoutes = require('./routes/authRoutes');
 
 const port = process.env.PORT || 3000;
 
+app.use('/auth', authRoutes);
 app.use('/alumnos', alumnoRoutes);
 app.use('/reservas', reservaRoutes);
 app.use('/instructores', instructorRoutes);
