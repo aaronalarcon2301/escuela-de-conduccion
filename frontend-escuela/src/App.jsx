@@ -1,39 +1,38 @@
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import './App.css'; 
-import Home from './pages/Home';
+import { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import Navbar from './components/Navbar';
+import Login from './pages/Login';
+import Home from './pages/Home'; // <-- Importamos tu Home original
 import Alumnos from './pages/Alumnos';
 import Instructores from './pages/Instructores';
 import Reservas from './pages/Reservas';
 import Evaluaciones from './pages/Evaluaciones';
 
 function App() {
+  // Estado que bloquea el sistema por defecto (false)
+  const [estaLogueado, setEstaLogueado] = useState(false);
+
+  // Si el candado está cerrado, solo mostramos la pantalla de Login
+  if (!estaLogueado) {
+    return <Login onLogin={() => setEstaLogueado(true)} />;
+  }
+
+  // Si el candado está abierto, mostramos el sistema completo
   return (
     <Router>
-      <div>
-        <nav className="navbar navbar-expand-lg navbar-dark bg-dark mb-4 shadow-sm">
-          <div className="container">
-            <Link className="navbar-brand fw-bold" to="/">🏁 AutoEscuela UBB</Link>
-            
-            <div className="navbar-collapse">
-              <div className="navbar-nav ms-auto d-flex flex-row gap-3">
-                <Link className="nav-link" to="/alumnos">Alumnos</Link>
-                <Link className="nav-link" to="/instructores">Instructores</Link>
-                <Link className="nav-link" to="/reservas">Reservas</Link>
-                <Link className="nav-link" to="/evaluaciones">Evaluaciones</Link>
-              </div>
-            </div>
-          </div>
-        </nav>
-
-        <div className="container pb-5">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/alumnos" element={<Alumnos />} />
-            <Route path="/instructores" element={<Instructores />} />
-            <Route path="/reservas" element={<Reservas />} />
-            <Route path="/evaluaciones" element={<Evaluaciones />} />
-          </Routes>
-        </div>
+      <Navbar />
+      <div className="container mt-4">
+        <Routes>
+          {/* La raíz del sistema ahora cargará de inmediato tu Home con su hermoso diseño */}
+          <Route path="/" element={<Home />} />
+          <Route path="/alumnos" element={<Alumnos />} />
+          <Route path="/instructores" element={<Instructores />} />
+          <Route path="/reservas" element={<Reservas />} />
+          <Route path="/evaluaciones" element={<Evaluaciones />} />
+          
+          {/* Por si acaso intentan ir a una ruta inexistente, los redirigimos al Home */}
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
       </div>
     </Router>
   );
