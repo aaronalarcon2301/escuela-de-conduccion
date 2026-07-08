@@ -8,7 +8,8 @@ function Alumnos() {
     apellido: '',
     rut: '',
     email: '',
-    telefono: ''
+    telefono: '',
+    pagos_al_dia: true 
   });
   const [modoEdicion, setModoEdicion] = useState(false);
   const [idEdicion, setIdEdicion] = useState(null);
@@ -20,10 +21,18 @@ function Alumnos() {
       .catch((error) => console.error('Error al cargar:', error));
   }, []);
 
+  // Función actualizada para manejar el menú desplegable y convertir el texto a booleano
   const manejarCambio = (e) => {
+    const { name, value } = e.target;
+    
+    let valorFinal = value;
+    if (name === 'pagos_al_dia') {
+      valorFinal = value === 'true'; // Convierte el string a booleano
+    }
+
     setNuevoAlumno({
       ...nuevoAlumno,
-      [e.target.name]: e.target.value
+      [name]: valorFinal
     });
   };
 
@@ -50,14 +59,15 @@ function Alumnos() {
       apellido: alumno.apellido,
       rut: alumno.rut,
       email: alumno.email,
-      telefono: alumno.telefono || ''
+      telefono: alumno.telefono || '',
+      pagos_al_dia: alumno.pagos_al_dia !== undefined ? alumno.pagos_al_dia : true
     });
     setModoEdicion(true);
     setIdEdicion(alumno.id);
   };
 
   const cancelarEdicion = () => {
-    setNuevoAlumno({ nombre: '', apellido: '', rut: '', email: '', telefono: '' });
+    setNuevoAlumno({ nombre: '', apellido: '', rut: '', email: '', telefono: '', pagos_al_dia: true });
     setModoEdicion(false);
     setIdEdicion(null);
   };
@@ -88,7 +98,7 @@ function Alumnos() {
       .then(res => res.json())
       .then(data => {
         setAlumnos([...alumnos, data]);
-        setNuevoAlumno({ nombre: '', apellido: '', rut: '', email: '', telefono: '' });
+        setNuevoAlumno({ nombre: '', apellido: '', rut: '', email: '', telefono: '', pagos_al_dia: true });
       })
       .catch(err => console.error('Error al guardar:', err));
     }
@@ -149,9 +159,24 @@ function Alumnos() {
                   <label className="form-label text-muted small fw-bold">Email</label>
                   <input type="email" className="form-control" name="email" value={nuevoAlumno.email} onChange={manejarCambio} required />
                 </div>
-                <div className="mb-4">
+                <div className="mb-3">
                   <label className="form-label text-muted small fw-bold">Teléfono</label>
                   <input type="text" className="form-control" name="telefono" placeholder="Ej: 987654321" value={nuevoAlumno.telefono} onChange={manejarCambio} />
+                </div>
+                
+                {/* Nuevo menú desplegable para el Estado de Pago */}
+                <div className="mb-4">
+                  <label className="form-label text-muted small fw-bold">Estado de Pago</label>
+                  <select 
+                    className="form-select" 
+                    name="pagos_al_dia" 
+                    value={String(nuevoAlumno.pagos_al_dia)} 
+                    onChange={manejarCambio}
+                    required
+                  >
+                    <option value="true">✅ Al día</option>
+                    <option value="false">❌ Registra deuda</option>
+                  </select>
                 </div>
                 
                 <div className="d-grid gap-2">
@@ -169,6 +194,7 @@ function Alumnos() {
           </div>
         </div>
 
+        {/* Tabla */}
         <div className="col-md-8">
           <div className="card shadow-sm border-0">
             <div className="card-body p-0">
@@ -181,13 +207,14 @@ function Alumnos() {
                       <th>RUT</th>
                       <th>Email</th>
                       <th>Teléfono</th>
+                      <th className="text-center">Estado Pago</th>
                       <th className="text-center pe-4">Acciones</th>
                     </tr>
                   </thead>
                   <tbody>
                     {alumnos.length === 0 ? (
                       <tr>
-                        <td colSpan="6" className="text-center py-5 text-muted">
+                        <td colSpan="7" className="text-center py-5 text-muted">
                           No hay alumnos registrados en el sistema.
                         </td>
                       </tr>
@@ -199,6 +226,15 @@ function Alumnos() {
                           <td>{alumno.rut}</td>
                           <td>{alumno.email}</td>
                           <td>{alumno.telefono || 'N/A'}</td>
+                          
+                          <td className="text-center">
+                            {alumno.pagos_al_dia ? (
+                              <span className="badge bg-success rounded-pill px-3 py-2">Al Día</span>
+                            ) : (
+                              <span className="badge bg-danger rounded-pill px-3 py-2">Moroso</span>
+                            )}
+                          </td>
+
                           <td className="text-center pe-4">
                             <div className="d-flex justify-content-center gap-2">
                               <button 

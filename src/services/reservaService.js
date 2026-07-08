@@ -2,6 +2,18 @@ const { AppDataSource } = require('../config/db');
 
 const crearReserva = async (datos) => {
   const reservaRepository = AppDataSource.getRepository('Reserva');
+  const alumnoRepository = AppDataSource.getRepository('Alumno');
+
+  const alumno = await alumnoRepository.findOneBy({ id: datos.alumnoId });
+
+  if (!alumno) {
+    throw new Error('El alumno seleccionado no existe.');
+  }
+
+  if (alumno.pagos_al_dia === false) {
+    throw new Error('Bloqueo de agendamiento: El alumno registra mensualidades pendientes.');
+  }
+
   const nuevaReserva = reservaRepository.create(datos);
   return await reservaRepository.save(nuevaReserva);
 };
