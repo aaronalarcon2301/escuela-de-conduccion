@@ -1,6 +1,3 @@
-/* src/pages/Home.css */
-
-/* Animación de entrada fluida (de abajo hacia arriba) */
 .fade-in-up {
   animation: fadeInUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
   opacity: 0;
@@ -17,7 +14,6 @@
   }
 }
 
-/* Acento vibrante para tipografía grande */
 .text-gradient {
   background: linear-gradient(135deg, #0052D4, #4364F7, #6FB1FC);
   -webkit-background-clip: text;
@@ -25,7 +21,6 @@
   background-clip: text;
 }
 
-/* Efecto hover interactivo para las tarjetas */
 .home-card {
   transition: all 0.3s ease;
   border-radius: 1rem;

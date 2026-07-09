@@ -4,7 +4,6 @@ import './Home.css'; // Importamos las animaciones
 function Home() {
   return (
     <div className="container py-5 px-4">
-      {/* Sección Hero: Tipografía gigante y minimalista */}
       <div className="row justify-content-center text-center mt-4 mb-5 fade-in-up">
         <div className="col-lg-8">
           <h1 className="display-4 fw-bolder text-dark mb-3" style={{ letterSpacing: '-1.5px' }}>
@@ -16,10 +15,8 @@ function Home() {
         </div>
       </div>
 
-      {/* Grid de Accesos Rápidos (Adaptable a celulares) */}
       <div className="row g-4 max-w-900 mx-auto fade-in-up delay-2">
         
-        {/* Tarjeta Alumnos */}
         <div className="col-12 col-md-6 col-lg-3">
           <Link to="/alumnos" className="card home-card shadow-sm border text-decoration-none h-100 text-center">
             <div className="card-body py-5">

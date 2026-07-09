@@ -5,9 +5,10 @@ function Reservas() {
   const [alumnos, setAlumnos] = useState([]);
   const [instructores, setInstructores] = useState([]);
   
+  // CORRECCIÓN: Usamos alumnoId e instructorId para coincidir con el Backend
   const [nuevaReserva, setNuevaReserva] = useState({
-    alumno: '',
-    instructor: '',
+    alumnoId: '',
+    instructorId: '',
     fecha: '',
     hora: '',
     estado: 'Programada'
@@ -24,7 +25,6 @@ function Reservas() {
   };
 
   useEffect(() => {
-    // Cargamos todo al mismo tiempo cuando la pantalla se abre
     Promise.all([
       fetch('http://localhost:3000/reservas').then(res => res.json()),
       fetch('http://localhost:3000/alumnos').then(res => res.json()),
@@ -49,8 +49,8 @@ function Reservas() {
     const fechaLimpia = reserva.fecha ? reserva.fecha.split('T')[0] : '';
     
     setNuevaReserva({
-      alumno: reserva.alumno.id,         
-      instructor: reserva.instructor.id, 
+      alumnoId: reserva.alumno ? reserva.alumno.id : '',         
+      instructorId: reserva.instructor ? reserva.instructor.id : '', 
       fecha: fechaLimpia,
       hora: reserva.hora,
       estado: reserva.estado
@@ -60,7 +60,7 @@ function Reservas() {
   };
 
   const cancelarEdicion = () => {
-    setNuevaReserva({ alumno: '', instructor: '', fecha: '', hora: '', estado: 'Programada' });
+    setNuevaReserva({ alumnoId: '', instructorId: '', fecha: '', hora: '', estado: 'Programada' });
     setModoEdicion(false);
     setIdEdicion(null);
   };
@@ -76,11 +76,24 @@ function Reservas() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(nuevaReserva)
     })
-    .then(() => {
-      cargarReservas(); // Volvemos a pedir las reservas actualizadas
-      cancelarEdicion(); // Limpiamos el formulario
+    // CORRECCIÓN: Validamos si la respuesta del servidor es correcta (status 200-299)
+    .then(async res => {
+      if (!res.ok) {
+        const errorData = await res.json();
+        // Si el backend arrojó un error (como el bloqueo de pagos), lanzamos una excepción
+        throw new Error(errorData.error || errorData.message || 'Error en la operación');
+      }
+      return res.json();
     })
-    .catch(err => console.error('Error al guardar:', err));
+    .then(() => {
+      cargarReservas(); 
+      cancelarEdicion(); 
+    })
+    .catch(err => {
+      // Ahora el sistema sí te avisará en pantalla si algo falló
+      alert(`⚠️ No se pudo agendar: ${err.message}`);
+      console.error('Error al guardar:', err);
+    });
   };
 
   const manejarEliminar = (id) => {
@@ -97,6 +110,10 @@ function Reservas() {
     }
   };
 
+  // VALIDACIÓN VISUAL DEL REQUISITO: Buscamos si el alumno seleccionado está moroso
+  const alumnoSeleccionado = alumnos.find(al => al.id === parseInt(nuevaReserva.alumnoId));
+  const estaBloqueadoPorPago = alumnoSeleccionado && alumnoSeleccionado.pagos_al_dia === false;
+
   return (
     <div className="mt-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
@@ -108,26 +125,35 @@ function Reservas() {
         <div className="col-md-4 mb-4">
           <div className="card shadow-sm border-0">
             <div className={`card-header text-white ${modoEdicion ? 'bg-success' : 'bg-info text-dark'}`}>
-              <h5 className="mb-0 fw-bold">{modoEdicion ? '✏️ Editar Reserva' : '📅 Agendar Clase'}</h5>
+              <h5 className="mb-0 fw-bold">{modoEdicion ? 'Editar Reserva' : 'Agendar Clase'}</h5>
             </div>
             <div className="card-body">
               <form onSubmit={manejarEnvio}>
                 
-                {/* Selector de Alumno */}
+                {/* Selector de Alumno (Cambiado name a alumnoId) */}
                 <div className="mb-3">
                   <label className="form-label text-muted small fw-bold">Alumno</label>
-                  <select className="form-select" name="alumno" value={nuevaReserva.alumno} onChange={manejarCambio} required>
+                  <select className="form-select" name="alumnoId" value={nuevaReserva.alumnoId} onChange={manejarCambio} required>
                     <option value="">Seleccione un alumno...</option>
                     {alumnos.map(al => (
-                      <option key={al.id} value={al.id}>{al.nombre} {al.apellido} ({al.rut})</option>
+                      <option key={al.id} value={al.id}>
+                        {al.nombre} {al.apellido} ({al.rut}) {al.pagos_al_dia === false ? '⚠️ MOROSO' : ''}
+                      </option>
                     ))}
                   </select>
                 </div>
 
-                {/* Selector de Instructor */}
+                {/* RESTRICCIÓN VISUAL: Letrero de aviso si el alumno debe mensualidades */}
+                {estaBloqueadoPorPago && (
+                  <div className="alert alert-danger fw-bold small py-2 animate__animated animate__fadeIn" role="alert">
+                    ❌ Restricción: Este alumno registra deudas pendientes y no puede agendar clases prácticas.
+                  </div>
+                )}
+
+                {/* Selector de Instructor (Cambiado name a instructorId) */}
                 <div className="mb-3">
                   <label className="form-label text-muted small fw-bold">Instructor</label>
-                  <select className="form-select" name="instructor" value={nuevaReserva.instructor} onChange={manejarCambio} required>
+                  <select className="form-select" name="instructorId" value={nuevaReserva.instructorId} onChange={manejarCambio} required>
                     <option value="">Seleccione un instructor...</option>
                     {instructores.map(inst => (
                       <option key={inst.id} value={inst.id}>{inst.nombre} {inst.apellido} - {inst.licencia}</option>
@@ -158,8 +184,12 @@ function Reservas() {
                 </div>
                 
                 <div className="d-grid gap-2">
-                  <button type="submit" className={`btn ${modoEdicion ? 'btn-success' : 'btn-info text-white'}`}>
-                    {modoEdicion ? 'Actualizar Reserva' : 'Guardar Reserva'}
+                  <button 
+                    type="submit" 
+                    className={`btn fw-bold ${estaBloqueadoPorPago ? 'btn-secondary' : modoEdicion ? 'btn-success' : 'btn-info text-white'}`}
+                    disabled={estaBloqueadoPorPago}
+                  >
+                    {estaBloqueadoPorPago ? 'Agendamiento Bloqueado' : modoEdicion ? 'Actualizar Reserva' : 'Guardar Reserva'}
                   </button>
                   {modoEdicion && (
                     <button type="button" className="btn btn-light border" onClick={cancelarEdicion}>Cancelar</button>
@@ -191,7 +221,6 @@ function Reservas() {
                       <tr><td colSpan="6" className="text-center py-5 text-muted">No hay clases agendadas aún.</td></tr>
                     ) : (
                       reservas.map((reserva) => {
-                        // Extraemos la fecha limpia para mostrarla bonita
                         const fechaVisual = reserva.fecha ? reserva.fecha.split('T')[0] : '';
                         return (
                           <tr key={reserva.id}>
@@ -218,7 +247,7 @@ function Reservas() {
                               </div>
                             </td>
                           </tr>
-                        )
+                        );
                       })
                     )}
                   </tbody>

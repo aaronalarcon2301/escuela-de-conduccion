@@ -9,7 +9,7 @@ module.exports = new EntitySchema({
     apellido: { type: 'varchar', nullable: true },          
     rut: { type: 'varchar', unique: true, nullable: true }, 
     email: { type: 'varchar', unique: true },
-    telefono: { type: 'varchar', nullable: true },
+    telefono: { type: 'varchar', unique: true, nullable: true }, 
     pagos_al_dia: { type: 'boolean', default: true }  
   }
 });

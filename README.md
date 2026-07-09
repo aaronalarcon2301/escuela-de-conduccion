@@ -8,6 +8,7 @@ API REST simple desarrollada en Node.js y Express para gestionar alumnos, instru
 - CRUD de instructores
 - Registro de evaluaciones prácticas
 - Cálculo automático de aprobación o reforzamiento
+- Sistema de Autenticación (Login)
 - Modo demo para probar la API sin PostgreSQL
 - Consultas útiles para mostrar en presentación, como búsquedas por nombre, rut, email y resultado
 
@@ -19,8 +20,11 @@ API REST simple desarrollada en Node.js y Express para gestionar alumnos, instru
 
 ## Instalación rápida
 
+Ejecuta los siguientes comandos en tu terminal para instalar las dependencias generales, los módulos de seguridad para el Login y levantar el entorno:
+
 ```bash
 npm install
+npm install bcryptjs jsonwebtoken
 npm run setup
 npm run dev
 ```
@@ -38,6 +42,7 @@ DB_PORT=5432
 DB_USER=postgres
 DB_PASSWORD=postgres
 DB_NAME=metodologia_db
+JWT_SECRET=tu_clave_secreta_aqui
 ```
 
 ## Endpoints principales
@@ -134,3 +139,4 @@ En la carpeta [.presentacion](.presentacion) se incluyen resúmenes listos para 
 - REST Client
 - Postman
 - ESLint
+```

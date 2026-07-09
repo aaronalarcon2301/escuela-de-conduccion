@@ -1,4 +1,5 @@
 const { AppDataSource } = require('../config/db');
+const emailService = require('./emailService');
 
 const crearReserva = async (datos) => {
   const reservaRepository = AppDataSource.getRepository('Reserva');
@@ -14,14 +15,49 @@ const crearReserva = async (datos) => {
     throw new Error('Bloqueo de agendamiento: El alumno registra mensualidades pendientes.');
   }
 
-  const nuevaReserva = reservaRepository.create(datos);
-  return await reservaRepository.save(nuevaReserva);
+  const choqueInstructor = await reservaRepository.findOne({
+    where: {
+      fecha: datos.fecha,
+      hora: datos.hora,
+      instructor: { id: datos.instructorId }
+    }
+  });
+
+  if (choqueInstructor) {
+    throw new Error('Cruce de horarios: El instructor ya tiene una clase agendada en ese horario.');
+  }
+
+  const choqueAlumno = await reservaRepository.findOne({
+    where: {
+      fecha: datos.fecha,
+      hora: datos.hora,
+      alumno: { id: datos.alumnoId }
+    }
+  });
+
+  if (choqueAlumno) {
+    throw new Error('Cruce de horarios: El alumno ya tiene una clase agendada en ese horario.');
+  }
+
+  const nuevaReserva = reservaRepository.create({
+    fecha: datos.fecha,
+    hora: datos.hora,
+    estado: datos.estado,
+    alumno: { id: datos.alumnoId },
+    instructor: { id: datos.instructorId }
+  });
+
+  const reservaGuardada = await reservaRepository.save(nuevaReserva);
+
+  emailService.enviarCorreoConfirmacion(alumno.email, alumno.nombre, datos.fecha, datos.hora);
+
+  return reservaGuardada;
 };
 
 const obtenerReservas = async () => {
   const reservaRepository = AppDataSource.getRepository('Reserva');
   return await reservaRepository.find({
-    order: { fecha: 'ASC', hora: 'ASC' } // Las ordenamos por fecha y hora
+    order: { fecha: 'ASC', hora: 'ASC' } 
   });
 };
 
@@ -31,7 +67,14 @@ const actualizarReserva = async (id, datos) => {
   
   if (!reserva) return null;
 
-  reservaRepository.merge(reserva, datos);
+  reservaRepository.merge(reserva, {
+    fecha: datos.fecha,
+    hora: datos.hora,
+    estado: datos.estado,
+    alumno: { id: datos.alumnoId },
+    instructor: { id: datos.instructorId }
+  });
+  
   return await reservaRepository.save(reserva);
 };
 

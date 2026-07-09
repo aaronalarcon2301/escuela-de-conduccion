@@ -6,22 +6,45 @@ const CRITERIOS = [
   { key: 'respetoSenales', label: 'Respeto de señales de tránsito' },
 ];
 
+const NIVELES = [
+  { value: 'Excelente', label: 'Excelente (5/5)' },
+  { value: 'Bueno', label: 'Bueno (4/5)' },
+  { value: 'Regular', label: 'Regular (3/5)' },
+  { value: 'Debe mejorar', label: 'Debe mejorar (2/5)' },
+  { value: 'Deficiente', label: 'Deficiente (1/5)' },
+];
+
+const COLOR_POR_NIVEL = {
+  'Excelente': 'bg-success',
+  'Bueno': 'bg-primary',
+  'Regular': 'bg-secondary',
+  'Debe mejorar': 'bg-warning text-dark',
+  'Deficiente': 'bg-danger',
+};
+
+const PUNTOS_POR_NIVEL = {
+  'Excelente': 5,
+  'Bueno': 4,
+  'Regular': 3,
+  'Debe mejorar': 2,
+  'Deficiente': 1,
+};
+
 function Evaluaciones() {
   const [alumnos, setAlumnos] = useState([]);
   const [instructores, setInstructores] = useState([]);
   const [historial, setHistorial] = useState([]);
-  const [notificacion, setNotificacion] = useState(null); // { tipo: 'success' | 'danger', texto }
+  const [notificacion, setNotificacion] = useState(null); 
 
   const [form, setForm] = useState({
     alumnoId: '',
     instructorId: '',
-    estacionamiento: 'Aprobado',
-    controlVehiculo: 'Aprobado',
-    respetoSenales: 'Aprobado',
+    estacionamiento: 'Excelente',
+    controlVehiculo: 'Excelente',
+    respetoSenales: 'Excelente',
     observaciones: '',
   });
 
-  // Cargar alumnos e instructores para los selectores
   useEffect(() => {
     fetch('http://localhost:3000/alumnos')
       .then((res) => res.json())
@@ -34,7 +57,6 @@ function Evaluaciones() {
       .catch((err) => console.error('Error al cargar instructores:', err));
   }, []);
 
-  // Cargar historial cada vez que se selecciona un alumno
   useEffect(() => {
     if (!form.alumnoId) {
       setHistorial([]);
@@ -49,6 +71,24 @@ function Evaluaciones() {
   const manejarCambio = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
+
+  const alumnoSeleccionado = alumnos.find((a) => a.id === parseInt(form.alumnoId));
+  const totalEvaluaciones = historial.length;
+  const aprobadas = historial.filter((ev) => ev.resultado === 'Aprobado').length;
+  const reforzamientos = totalEvaluaciones - aprobadas;
+  const rendimiento = totalEvaluaciones > 0 ? Math.round((aprobadas / totalEvaluaciones) * 100) : 0;
+
+  const ultimaEvaluacion = historial[0];
+  const requiereReforzamiento = ultimaEvaluacion && ultimaEvaluacion.resultado !== 'Aprobado';
+  const criteriosAReforzar = requiereReforzamiento
+    ? CRITERIOS.filter((c) => ['Debe mejorar', 'Deficiente'].includes(ultimaEvaluacion[c.key])).map((c) => c.label)
+    : [];
+  const fechaProximaEvaluacion = (() => {
+    if (!ultimaEvaluacion) return null;
+    const base = new Date(ultimaEvaluacion.fecha);
+    base.setDate(base.getDate() + 7);
+    return base.toLocaleDateString();
+  })();
 
   const manejarEnvio = (e) => {
     e.preventDefault();
@@ -81,9 +121,9 @@ function Evaluaciones() {
         setHistorial([evaluacion, ...historial]);
         setForm({
           ...form,
-          estacionamiento: 'Aprobado',
-          controlVehiculo: 'Aprobado',
-          respetoSenales: 'Aprobado',
+          estacionamiento: 'Excelente',
+          controlVehiculo: 'Excelente',
+          respetoSenales: 'Excelente',
           observaciones: '',
         });
       })
@@ -102,8 +142,31 @@ function Evaluaciones() {
         </div>
       )}
 
+      <div className="card shadow-sm border-0 mb-4">
+        <div className="card-body">
+          <h6 className="mb-3">ℹ️ ¿Cómo se evalúa?</h6>
+          <p className="text-muted small mb-2">
+            Cada criterio (estacionamiento, control del vehículo y respeto de señales) se califica en la siguiente escala:
+          </p>
+          <div className="d-flex flex-wrap gap-2 mb-3">
+            {NIVELES.map((nivel) => (
+              <span key={nivel.value} className={`badge ${COLOR_POR_NIVEL[nivel.value]}`}>
+                {nivel.value} ({PUNTOS_POR_NIVEL[nivel.value]}/5)
+              </span>
+            ))}
+          </div>
+          <p className="text-muted small mb-1">
+            <strong>Resultado final:</strong> el sistema calcula automáticamente el promedio de los 3 criterios.
+          </p>
+          <ul className="text-muted small mb-0 ps-3">
+            <li>Si el promedio es <strong>60% o más</strong>, el alumno queda <span className="text-success fw-bold">Aprobado</span>.</li>
+            <li>Si algún criterio queda calificado como <strong>Deficiente</strong>, el alumno <span className="text-danger fw-bold">requiere reforzamiento</span> automáticamente, sin importar el promedio.</li>
+            <li>En cualquier otro caso, el alumno <span className="text-warning fw-bold">requiere reforzamiento</span>.</li>
+          </ul>
+        </div>
+      </div>
+
       <div className="row">
-        {/* Formulario */}
         <div className="col-md-5 mb-4">
           <div className="card shadow-sm border-0">
             <div className="card-header bg-primary text-white">
@@ -160,8 +223,9 @@ function Evaluaciones() {
                       onChange={manejarCambio}
                       required
                     >
-                      <option value="Aprobado">Aprobado</option>
-                      <option value="Reforzamiento">Requiere reforzamiento</option>
+                      {NIVELES.map((nivel) => (
+                        <option key={nivel.value} value={nivel.value}>{nivel.label}</option>
+                      ))}
                     </select>
                   </div>
                 ))}
@@ -187,8 +251,45 @@ function Evaluaciones() {
           </div>
         </div>
 
-        {/* Historial del alumno seleccionado */}
         <div className="col-md-7">
+          {form.alumnoId && (
+            <div className="card shadow-sm border-0 mb-3">
+              <div className="card-body">
+                <h5 className="mb-3">{alumnoSeleccionado ? `${alumnoSeleccionado.nombre} ${alumnoSeleccionado.apellido || ''}` : 'Alumno'}</h5>
+                <div className="row text-center">
+                  <div className="col">
+                    <div className="fs-4 fw-bold">{totalEvaluaciones}</div>
+                    <div className="text-muted small">Evaluaciones</div>
+                  </div>
+                  <div className="col">
+                    <div className="fs-4 fw-bold text-success">{aprobadas} ✅</div>
+                    <div className="text-muted small">Aprobadas</div>
+                  </div>
+                  <div className="col">
+                    <div className="fs-4 fw-bold text-warning">{reforzamientos} ⚠️</div>
+                    <div className="text-muted small">Reforzamiento</div>
+                  </div>
+                  <div className="col">
+                    <div className="fs-4 fw-bold">{rendimiento}%</div>
+                    <div className="text-muted small">Rendimiento</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {requiereReforzamiento && (
+            <div className="card shadow-sm border-0 mb-3 border-start border-4 border-warning">
+              <div className="card-body">
+                <h6 className="mb-2">📅 Próxima práctica recomendada</h6>
+                <div className="mb-1"><strong>{fechaProximaEvaluacion}</strong></div>
+                <div className="text-muted small">
+                  Motivo: {criteriosAReforzar.length > 0 ? `Mejorar ${criteriosAReforzar.join(', ').toLowerCase()}` : 'Repasar los criterios evaluados'}
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="card shadow-sm border-0">
             <div className="card-header bg-dark text-white">
               <h5 className="mb-0">Historial del alumno</h5>
@@ -199,6 +300,7 @@ function Evaluaciones() {
                   <thead className="table-light">
                     <tr>
                       <th>Fecha</th>
+                      <th>Instructor</th>
                       <th>Estacionamiento</th>
                       <th>Control vehículo</th>
                       <th>Señales</th>
@@ -209,23 +311,26 @@ function Evaluaciones() {
                   <tbody>
                     {!form.alumnoId ? (
                       <tr>
-                        <td colSpan="6" className="text-center py-5 text-muted">
+                        <td colSpan="7" className="text-center py-5 text-muted">
                           Selecciona un alumno para ver su historial.
                         </td>
                       </tr>
                     ) : historial.length === 0 ? (
                       <tr>
-                        <td colSpan="6" className="text-center py-5 text-muted">
+                        <td colSpan="7" className="text-center py-5 text-muted">
                           Este alumno aún no tiene evaluaciones registradas.
                         </td>
                       </tr>
                     ) : (
-                      historial.map((ev) => (
+                      historial.map((ev) => {
+                        const instructorEvaluacion = instructores.find((i) => i.id === ev.instructorId);
+                        return (
                         <tr key={ev.id}>
                           <td>{new Date(ev.fecha).toLocaleDateString()}</td>
-                          <td>{ev.estacionamiento}</td>
-                          <td>{ev.controlVehiculo}</td>
-                          <td>{ev.respetoSenales}</td>
+                          <td>{instructorEvaluacion ? instructorEvaluacion.nombre : '—'}</td>
+                          <td><span className={`badge ${COLOR_POR_NIVEL[ev.estacionamiento] || 'bg-secondary'}`}>{ev.estacionamiento} ({PUNTOS_POR_NIVEL[ev.estacionamiento] || '?'}/5)</span></td>
+                          <td><span className={`badge ${COLOR_POR_NIVEL[ev.controlVehiculo] || 'bg-secondary'}`}>{ev.controlVehiculo} ({PUNTOS_POR_NIVEL[ev.controlVehiculo] || '?'}/5)</span></td>
+                          <td><span className={`badge ${COLOR_POR_NIVEL[ev.respetoSenales] || 'bg-secondary'}`}>{ev.respetoSenales} ({PUNTOS_POR_NIVEL[ev.respetoSenales] || '?'}/5)</span></td>
                           <td>
                             <span className={`badge ${ev.resultado === 'Aprobado' ? 'bg-success' : 'bg-warning text-dark'}`}>
                               {ev.resultado}
@@ -233,7 +338,8 @@ function Evaluaciones() {
                           </td>
                           <td className="text-muted small">{ev.observaciones || '—'}</td>
                         </tr>
-                      ))
+                        );
+                      })
                     )}
                   </tbody>
                 </table>

@@ -49,7 +49,7 @@ function Login({ onLogin }) {
     <div className="d-flex justify-content-center align-items-center vh-100 bg-light">
       <div className="card shadow-lg border-0" style={{ width: '100%', maxWidth: '400px' }}>
         <div className="card-header bg-dark text-white text-center py-4">
-          <h3 className="mb-0 fw-bold">🏁 AutoEscuela UBB</h3>
+          <h3 className="mb-0 fw-bold">AutoEscuela UBB</h3>
           <p className="mb-0 small text-white-50">Sistema de Gestión Académica</p>
         </div>
         <div className="card-body p-4">

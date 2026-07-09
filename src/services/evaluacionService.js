@@ -16,16 +16,15 @@ const crearEvaluacion = async (datos) => {
     throw new Error('El instructor seleccionado no existe');
   }
 
-  // El resultado NUNCA se recibe del cliente: lo calcula el sistema
-  // automáticamente según los criterios evaluados.
-  const resultado = calcularResultadoEvaluacion(datos);
+  
+  const { resultado, porcentaje } = calcularResultadoEvaluacion(datos);
 
   const nuevaEvaluacion = repository.create({ ...datos, resultado });
   const evaluacionGuardada = await repository.save(nuevaEvaluacion);
 
   return {
     evaluacion: evaluacionGuardada,
-    mensaje: obtenerMensajeResultado(resultado),
+    mensaje: obtenerMensajeResultado(resultado, porcentaje),
   };
 };
 
@@ -36,7 +35,6 @@ const obtenerEvaluaciones = async () => {
 
 const obtenerEvaluacionesPorAlumno = async (alumnoId) => {
   const repository = AppDataSource.getRepository('EvaluacionPractica');
-  // Corregido: alumnoId es una columna simple, no una relación "alumno".
   return await repository.find({ where: { alumnoId } });
 };
 
@@ -46,18 +44,21 @@ const actualizarEvaluacion = async (id, datos) => {
 
   if (!evaluacion) return null;
 
-  // Si se modifica algún criterio, se recalcula el resultado automáticamente.
   const criteriosModificados =
     datos.estacionamiento !== undefined ||
     datos.controlVehiculo !== undefined ||
     datos.respetoSenales !== undefined;
 
+  let porcentajeActualizado = null;
+
   if (criteriosModificados) {
-    datos.resultado = calcularResultadoEvaluacion({
+    const calculo = calcularResultadoEvaluacion({
       estacionamiento: datos.estacionamiento ?? evaluacion.estacionamiento,
       controlVehiculo: datos.controlVehiculo ?? evaluacion.controlVehiculo,
       respetoSenales: datos.respetoSenales ?? evaluacion.respetoSenales,
     });
+    datos.resultado = calculo.resultado;
+    porcentajeActualizado = calculo.porcentaje;
   }
 
   repository.merge(evaluacion, datos);
@@ -65,7 +66,7 @@ const actualizarEvaluacion = async (id, datos) => {
 
   return {
     evaluacion: evaluacionActualizada,
-    mensaje: obtenerMensajeResultado(evaluacionActualizada.resultado),
+    mensaje: obtenerMensajeResultado(evaluacionActualizada.resultado, porcentajeActualizado),
   };
 };
 

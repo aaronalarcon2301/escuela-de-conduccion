@@ -1,33 +1,44 @@
 import { useState, useEffect } from 'react';
 
+const API_URL = 'http://localhost:3000/alumnos';
+
 function Alumnos() {
   const [alumnos, setAlumnos] = useState([]);
-  
+  const [mensajeError, setMensajeError] = useState(null);
+
   const [nuevoAlumno, setNuevoAlumno] = useState({
     nombre: '',
     apellido: '',
     rut: '',
     email: '',
     telefono: '',
-    pagos_al_dia: true 
+    pagos_al_dia: true
   });
   const [modoEdicion, setModoEdicion] = useState(false);
   const [idEdicion, setIdEdicion] = useState(null);
 
+  const cargarAlumnos = async () => {
+    try {
+      const res = await fetch(API_URL);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const datos = await res.json();
+      setAlumnos(Array.isArray(datos) ? datos : []);
+    } catch (error) {
+      console.error('Error al cargar alumnos:', error);
+      setMensajeError('No se pudo cargar la lista de alumnos. ¿Está corriendo el backend en el puerto 3000?');
+    }
+  };
+
   useEffect(() => {
-    fetch('http://localhost:3000/alumnos')
-      .then((respuesta) => respuesta.json())
-      .then((datos) => setAlumnos(datos))
-      .catch((error) => console.error('Error al cargar:', error));
+    cargarAlumnos();
   }, []);
 
-  // Función actualizada para manejar el menú desplegable y convertir el texto a booleano
   const manejarCambio = (e) => {
     const { name, value } = e.target;
-    
+
     let valorFinal = value;
     if (name === 'pagos_al_dia') {
-      valorFinal = value === 'true'; // Convierte el string a booleano
+      valorFinal = value === 'true';
     }
 
     setNuevoAlumno({
@@ -64,58 +75,61 @@ function Alumnos() {
     });
     setModoEdicion(true);
     setIdEdicion(alumno.id);
+    setMensajeError(null);
   };
 
   const cancelarEdicion = () => {
     setNuevoAlumno({ nombre: '', apellido: '', rut: '', email: '', telefono: '', pagos_al_dia: true });
     setModoEdicion(false);
     setIdEdicion(null);
+    setMensajeError(null);
   };
 
-  const manejarEnvio = (e) => {
-    e.preventDefault(); 
-    
-    if (modoEdicion) {
-      fetch(`http://localhost:3000/alumnos/${idEdicion}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(nuevoAlumno)
-      })
-      .then(res => res.json())
-      .then(data => {
-        const listaActualizada = alumnos.map(al => al.id === idEdicion ? data : al);
-        setAlumnos(listaActualizada);
-        cancelarEdicion(); 
-      })
-      .catch(err => console.error('Error al actualizar:', err));
+  const manejarEnvio = async (e) => {
+    e.preventDefault();
+    setMensajeError(null);
 
-    } else {
-      fetch('http://localhost:3000/alumnos', {
-        method: 'POST',
+    const url = modoEdicion ? `${API_URL}/${idEdicion}` : API_URL;
+
+    try {
+      const res = await fetch(url, {
+        method: modoEdicion ? 'PATCH' : 'POST', // el backend define PATCH, no PUT
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(nuevoAlumno)
-      })
-      .then(res => res.json())
-      .then(data => {
-        setAlumnos([...alumnos, data]);
-        setNuevoAlumno({ nombre: '', apellido: '', rut: '', email: '', telefono: '', pagos_al_dia: true });
-      })
-      .catch(err => console.error('Error al guardar:', err));
+      });
+
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        setMensajeError((data && data.error) || `Error del servidor (HTTP ${res.status})`);
+        return;
+      }
+
+      await cargarAlumnos();
+      cancelarEdicion();
+    } catch (err) {
+      console.error('Error de red:', err);
+      setMensajeError('No se pudo conectar con el servidor. ¿Está corriendo el backend en el puerto 3000?');
     }
   };
 
-  const manejarEliminar = (id) => {
+  const manejarEliminar = async (id) => {
     const confirmar = window.confirm('¿Estás seguro de que deseas eliminar a este alumno? Esta acción no se puede deshacer.');
-    
-    if (confirmar) {
-      fetch(`http://localhost:3000/alumnos/${id}`, {
-        method: 'DELETE',
-      })
-      .then(() => {
-        const nuevaLista = alumnos.filter(alumno => alumno.id !== id);
-        setAlumnos(nuevaLista);
-      })
-      .catch(err => console.error('Error al eliminar:', err));
+    if (!confirmar) return;
+
+    try {
+      const res = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        setMensajeError((data && data.error) || `Error al eliminar (HTTP ${res.status})`);
+        return;
+      }
+
+      await cargarAlumnos();
+    } catch (err) {
+      console.error('Error al eliminar:', err);
+      setMensajeError('No se pudo conectar con el servidor al intentar eliminar.');
     }
   };
 
@@ -124,9 +138,15 @@ function Alumnos() {
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2>Gestión de Alumnos</h2>
       </div>
-      
+
+      {mensajeError && (
+        <div className="alert alert-danger alert-dismissible fade show" role="alert">
+          {mensajeError}
+          <button type="button" className="btn-close" onClick={() => setMensajeError(null)}></button>
+        </div>
+      )}
+
       <div className="row">
-        {/* Formulario */}
         <div className="col-md-4 mb-4">
           <div className="card shadow-sm border-0">
             <div className={`card-header text-white ${modoEdicion ? 'bg-success' : 'bg-primary'}`}>
@@ -144,15 +164,15 @@ function Alumnos() {
                 </div>
                 <div className="mb-3">
                   <label className="form-label text-muted small fw-bold">RUT</label>
-                  <input 
-                    type="text" 
-                    className="form-control" 
-                    name="rut" 
-                    placeholder="Ej: 12.345.678-9" 
-                    value={nuevoAlumno.rut} 
-                    onChange={manejarCambio} 
-                    onBlur={manejarBlurRut} 
-                    required 
+                  <input
+                    type="text"
+                    className="form-control"
+                    name="rut"
+                    placeholder="Ej: 12.345.678-9"
+                    value={nuevoAlumno.rut}
+                    onChange={manejarCambio}
+                    onBlur={manejarBlurRut}
+                    required
                   />
                 </div>
                 <div className="mb-3">
@@ -163,22 +183,21 @@ function Alumnos() {
                   <label className="form-label text-muted small fw-bold">Teléfono</label>
                   <input type="text" className="form-control" name="telefono" placeholder="Ej: 987654321" value={nuevoAlumno.telefono} onChange={manejarCambio} />
                 </div>
-                
-                {/* Nuevo menú desplegable para el Estado de Pago */}
+
                 <div className="mb-4">
                   <label className="form-label text-muted small fw-bold">Estado de Pago</label>
-                  <select 
-                    className="form-select" 
-                    name="pagos_al_dia" 
-                    value={String(nuevoAlumno.pagos_al_dia)} 
+                  <select
+                    className="form-select"
+                    name="pagos_al_dia"
+                    value={String(nuevoAlumno.pagos_al_dia)}
                     onChange={manejarCambio}
                     required
                   >
-                    <option value="true">✅ Al día</option>
-                    <option value="false">❌ Registra deuda</option>
+                    <option value="true">Al día</option>
+                    <option value="false">Registra deuda</option>
                   </select>
                 </div>
-                
+
                 <div className="d-grid gap-2">
                   <button type="submit" className={`btn ${modoEdicion ? 'btn-success' : 'btn-primary'}`}>
                     {modoEdicion ? 'Actualizar Alumno' : 'Guardar Alumno'}
@@ -226,28 +245,28 @@ function Alumnos() {
                           <td>{alumno.rut}</td>
                           <td>{alumno.email}</td>
                           <td>{alumno.telefono || 'N/A'}</td>
-                          
+
                           <td className="text-center">
                             {alumno.pagos_al_dia ? (
                               <span className="badge bg-success rounded-pill px-3 py-2">Al Día</span>
                             ) : (
-                              <span className="badge bg-danger rounded-pill px-3 py-2">Moroso</span>
+                              <span className="badge bg-danger rounded-pill px-3 py-2">Deuda</span>
                             )}
                           </td>
 
                           <td className="text-center pe-4">
                             <div className="d-flex justify-content-center gap-2">
-                              <button 
-                                onClick={() => manejarEditar(alumno)} 
+                              <button
+                                onClick={() => manejarEditar(alumno)}
                                 className="btn btn-sm btn-outline-primary transition-all px-3"
                                 style={{ borderRadius: '20px' }}
                                 title="Editar registro"
                               >
                                 ✏️
                               </button>
-                              
-                              <button 
-                                onClick={() => manejarEliminar(alumno.id)} 
+
+                              <button
+                                onClick={() => manejarEliminar(alumno.id)}
                                 className="btn btn-sm btn-outline-danger transition-all px-3"
                                 style={{ borderRadius: '20px' }}
                                 title="Eliminar registro"

@@ -3,8 +3,12 @@ const alumnoService = require('../services/alumnoService');
 const crearAlumno = async (req, res) => {
   try {
     const resultado = await alumnoService.crearAlumno(req.body);
-    res.status(201).json(resultado); 
+    res.status(201).json(resultado);
   } catch (error) {
+    if (error.code === '23505' || (error.driverError && error.driverError.code === '23505')) {
+      return res.status(400).json({ error: 'Ya existe un alumno con ese RUT o email' });
+    }
+    console.error('Error al crear alumno:', error.message);
     res.status(400).json({ error: 'Error al crear el alumno, revisa los datos' });
   }
 };
@@ -22,12 +26,15 @@ const actualizarAlumno = async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     const resultado = await alumnoService.actualizarAlumno(id, req.body);
-    
+
     if (!resultado) {
       return res.status(404).json({ error: 'Alumno no encontrado' });
     }
     res.json(resultado);
   } catch (error) {
+    if (error.code === '23505' || (error.driverError && error.driverError.code === '23505')) {
+      return res.status(400).json({ error: 'Ya existe otro alumno con ese RUT o email' });
+    }
     res.status(500).json({ error: 'Error interno al actualizar el alumno' });
   }
 };
@@ -36,7 +43,7 @@ const eliminarAlumno = async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     const eliminado = await alumnoService.eliminarAlumno(id);
-    
+
     if (!eliminado) {
       return res.status(404).json({ error: 'Alumno no encontrado' });
     }

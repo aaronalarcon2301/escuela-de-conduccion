@@ -120,7 +120,7 @@ function Instructores() {
         <div className="col-md-4 mb-4">
           <div className="card shadow-sm border-0">
             <div className={`card-header text-white ${modoEdicion ? 'bg-success' : 'bg-dark'}`}>
-              <h5 className="mb-0">{modoEdicion ? '✏️ Editar Instructor' : 'Registrar Instructor'}</h5>
+              <h5 className="mb-0">{modoEdicion ? 'Editar Instructor' : 'Registrar Instructor'}</h5>
             </div>
             <div className="card-body">
               <form onSubmit={manejarEnvio}>
